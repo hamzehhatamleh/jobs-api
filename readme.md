@@ -52,7 +52,7 @@ pytest
 | POST   | `/jobs`                  | Create a job for a company      |
 | GET    | `/jobs/{job_id}`         | Get one job                     |
 
-## What I learned
+
 
 ## What I learned
 
