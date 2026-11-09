@@ -76,3 +76,52 @@ def test_create_job_for_missing_company():
     response = client.post("/jobs", json={"title": "Ghost Job", "company_id": 999})
 
     assert response.status_code == 404
+
+
+
+
+
+def test_list_jobs_default():
+    response = client.get("/jobs")
+
+    assert response.status_code==200
+
+    assert isinstance(response.json(), list)  
+
+
+
+
+def test_list_jobs_limit():
+    response = client.get("/jobs?limit=1")
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+
+
+def test_list_jobs_bad_limit():
+    response = client.get("/jobs?limit=0")
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["query", "limit"]
+
+
+
+def test_list_jobs_unknown_company():
+    response = client.get("/jobs?company_id=999")
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+
+def test_list_companies_city():
+    response = client.get("/companies?city=Amman")
+    assert response.status_code == 200
+    companies = response.json()
+    assert len(companies) >= 1
+    assert all(c["city"] == "Amman" for c in companies)
+
+
+
+def test_list_companies_unknown_city():
+    response = client.get("/companies?city=Cairo")
+    assert response.status_code == 200
+    assert response.json() == []
