@@ -31,13 +31,11 @@ client = TestClient(app)
 
 def test_get_job_not_found():
     response = client.get("/jobs/99")
-
     assert response.status_code == 404
 
 
 def test_get_company_invalid_id():
     response = client.get("/companies/abc")
-
     assert response.status_code == 422
 
 
@@ -46,7 +44,6 @@ def test_create_company_with_no_jobs():
         "/companies",
         json={"name": "comp1", "city": "amman", "jobs": []},
     )
-
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "jobs"]
 
@@ -56,39 +53,36 @@ def test_create_company_with_no_jobs():
 def test_create_company():
     response = client.post(
         "/companies",
-        json={"name": "Aramex", "city": "Amman", "jobs": [{"title": "Data Analyst"}]},
+        json={
+            "name": "Aramex",
+            "city": "Amman",
+            "jobs": [{"title": "Data Analyst"}, {"title": "AI Engineer"}],
+        },
     )
-
     assert response.status_code == 201
     assert response.json()["name"] == "Aramex"
+    assert len(response.json()["jobs"]) == 2
     assert response.json()["jobs"][0]["title"] == "Data Analyst"
 
 
 def test_get_company():
     # runs after test_create_company → the test database has company 1
     response = client.get("/companies/1")
-
     assert response.status_code == 200
     assert response.json()["name"] == "Aramex"
 
 
 def test_create_job_for_missing_company():
     response = client.post("/jobs", json={"title": "Ghost Job", "company_id": 999})
-
     assert response.status_code == 404
 
 
-
-
+# ---------- list: jobs ----------
 
 def test_list_jobs_default():
     response = client.get("/jobs")
-
-    assert response.status_code==200
-
-    assert isinstance(response.json(), list)  
-
-
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
 
 
 def test_list_jobs_limit():
@@ -97,12 +91,19 @@ def test_list_jobs_limit():
     assert len(response.json()) == 1
 
 
-
 def test_list_jobs_bad_limit():
     response = client.get("/jobs?limit=0")
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["query", "limit"]
 
+
+def test_list_jobs_title():
+    # test DB has "Data Analyst" + "AI Engineer" → search must return ONLY the engineer
+    response = client.get("/jobs?title=Engineer")      # lowercase on purpose
+    assert response.status_code == 200
+    jobs = response.json()
+    assert len(jobs) >= 1
+    assert all("engineer" in j["title"].lower() for j in jobs)
 
 
 def test_list_jobs_unknown_company():
@@ -111,6 +112,7 @@ def test_list_jobs_unknown_company():
     assert response.json() == []
 
 
+# ---------- list: companies ----------
 
 def test_list_companies_city():
     response = client.get("/companies?city=Amman")
@@ -118,7 +120,6 @@ def test_list_companies_city():
     companies = response.json()
     assert len(companies) >= 1
     assert all(c["city"] == "Amman" for c in companies)
-
 
 
 def test_list_companies_unknown_city():

@@ -24,11 +24,17 @@ def list_jobs(
     company_id: int | None = None,
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
+    title:str | None = None,
     session: Session = Depends(get_db),
 ):
     stmt = select(jobDB)
     if company_id is not None:
         stmt = stmt.where(jobDB.company_id == company_id)
+
+    if title is not None:
+        stmt = stmt.where(jobDB.title.contains(title))
+
+
     stmt = stmt.order_by(jobDB.id).offset(offset).limit(limit)
     jobs = session.scalars(stmt).all()
     return [job_out.model_validate(j) for j in jobs]
