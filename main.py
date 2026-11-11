@@ -10,6 +10,7 @@ from schemas import (
     company_out,
     job_create,
     job_out,
+    job_update,
 )
 
 # the models are imported above → Base knows both tables → create them
@@ -91,3 +92,45 @@ def create_company(data: company_create, session: Session = Depends(get_db)):
     session.add(company)
     session.commit()
     return company_detail_out.model_validate(company)
+
+
+
+
+
+@app.patch("/jobs/{job_id}", response_model=job_out)
+def update_job(job_id: int, data: job_update, session: Session = Depends(get_db)):
+    job = session.get(jobDB, job_id)
+    if job is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
+
+    changes = data.model_dump(exclude_unset=True)
+
+    if "company_id" in changes:
+        company = session.get(CompanyDB, changes["company_id"])
+        if company is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+
+    for key, value in changes.items():
+        setattr(job, key, value)
+
+    session.commit()
+
+    # 6. send back the updated job
+    return job_out.model_validate(job)
+
+
+@app.delete("/jobs/{job_id}",status_code=204)
+def delete_job(job_id: int, session: Session = Depends(get_db)):
+    job = session.get(jobDB,job_id)
+
+    if job is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="job not found")
+
+
+    session.delete(job)
+    session.commit()
+
+    
+
+    
+

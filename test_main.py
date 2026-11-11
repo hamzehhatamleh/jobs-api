@@ -126,3 +126,50 @@ def test_list_companies_unknown_city():
     response = client.get("/companies?city=Cairo")
     assert response.status_code == 200
     assert response.json() == []
+
+
+
+
+
+# ---------- update + delete ----------
+
+def test_patch_job_title():
+    r = client.post("/companies", json={
+        "name": "PatchCo", "city": "Zarqa", "jobs": [{"title": "Junior Dev"}],
+    })
+    job_id = r.json()["jobs"][0]["id"]
+
+    response = client.patch(f"/jobs/{job_id}", json={"title": "Senior Dev"})
+
+    assert response.status_code == 200
+    assert response.json()["title"] == "Senior Dev"
+    assert client.get(f"/jobs/{job_id}").json()["title"] == "Senior Dev"
+
+
+def test_patch_job_bad_company():
+    r = client.post("/companies", json={
+        "name": "MoveCo", "city": "Irbid", "jobs": [{"title": "Tester"}],
+    })
+    job_id = r.json()["jobs"][0]["id"]
+
+    response = client.patch(f"/jobs/{job_id}", json={"company_id": 999})
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Company not found"
+
+
+def test_delete_job():
+    r = client.post("/companies", json={
+        "name": "DeleteCo", "city": "Aqaba", "jobs": [{"title": "Temp Job"}],
+    })
+    job_id = r.json()["jobs"][0]["id"]
+
+    response = client.delete(f"/jobs/{job_id}")
+    assert response.status_code == 204
+    assert client.get(f"/jobs/{job_id}").status_code == 404
+
+
+
+def test_delete_missing_job():
+    response = client.delete("/jobs/9999")
+    assert response.status_code == 404

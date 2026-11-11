@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -15,6 +17,19 @@ class company_create(BaseModel):
     name: str = Field(min_length=2, max_length=50)
     city: str = Field(min_length=2, max_length=50)
     jobs: list[job_in_company] = Field(min_length=1)
+
+
+
+class company_update(BaseModel):
+    pass
+
+
+
+
+class job_update(BaseModel):
+    title: str | None = Field(default=None, min_length=2, max_length=100)
+    company_id: int| None = Field(default=None, gt=0)
+   
 
 
 # ---------- OUTPUT (what we send back) ----------
