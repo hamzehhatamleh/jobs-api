@@ -11,12 +11,15 @@ services:
 
   db:
     image: postgres:16
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_USER=jobs_app
       - POSTGRES_PASSWORD=hamzeh12
       - POSTGRES_DB=jobs
     volumes:
       - pg-data:/var/lib/postgresql/data
+
 
 volumes:
   pg-data:

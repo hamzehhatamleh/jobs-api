@@ -25,3 +25,4 @@ class jobDB(Base):
 
     # Python only, no column: job.company → one company
     company: Mapped["CompanyDB"] = relationship(back_populates="jobs")
+    salary:Mapped[int]  = mapped_column(nullable=True)

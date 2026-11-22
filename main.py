@@ -54,7 +54,7 @@ def create_job(job: job_create, session: Session = Depends(get_db)):
     company = session.get(CompanyDB, job.company_id)
     if company is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
-    new_job = jobDB(title=job.title, company_id=job.company_id)
+    new_job = jobDB(title=job.title, company_id=job.company_id , salary=job.salary)
     session.add(new_job)
     session.commit()
     return job_out.model_validate(new_job)      # the NEW DB object (has an id)
@@ -87,8 +87,9 @@ def get_company(company_id: int, session: Session = Depends(get_db)):
 @app.post("/companies", response_model=company_detail_out, status_code=status.HTTP_201_CREATED)
 def create_company(data: company_create, session: Session = Depends(get_db)):
     company = CompanyDB(name=data.name, city=data.city)
+
     for j in data.jobs:
-        company.jobs.append(jobDB(title=j.title))   # Pydantic input → DB object
+        company.jobs.append(jobDB(title=j.title,salary=j.salary))   # Pydantic input → DB object
     session.add(company)
     session.commit()
     return company_detail_out.model_validate(company)
