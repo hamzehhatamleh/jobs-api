@@ -2,7 +2,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from database import Base, engine, get_db
+from database import get_db
 from models import CompanyDB, jobDB
 from schemas import (
     company_create,
@@ -13,8 +13,6 @@ from schemas import (
     job_update,
 )
 
-# the models are imported above → Base knows both tables → create them
-Base.metadata.create_all(engine)
 
 app = FastAPI()
 
